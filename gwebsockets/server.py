@@ -44,7 +44,9 @@ class MessageBuffer():
 
 
 class Server():
-    def __init__(self):
+    def __init__(self, address, port):
+        self._address = address
+        self._port = port
         self._connection = None
         self._request = StringIO()
         self._message = MessageBuffer()
@@ -98,8 +100,8 @@ class Server():
                                  None, self._message_write_cb, callback)
 
     def start(self):
-        address = Gio.InetAddress.new_from_string("127.0.0.1")
-        socket_address = Gio.InetSocketAddress.new(address, 9000)
+        inet_address = Gio.InetAddress.new_from_string(self._address)
+        socket_address = Gio.InetSocketAddress.new(inet_address, self._port)
 
         service = Gio.SocketService()
         service.add_address(socket_address, Gio.SocketType.STREAM,
@@ -109,7 +111,7 @@ class Server():
 
 
 if __name__ == "__main__":
-    server = Server()
+    server = Server("127.0.0.1", 9000)
     server.start()
 
     main_loop = GLib.MainLoop()
