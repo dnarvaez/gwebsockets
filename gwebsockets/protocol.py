@@ -202,17 +202,15 @@ def make_close_message(code=1000, message=b''):
                        opcode=OPCODE_CLOSE)
  
 
-def make_binary_message(message):
-    """Make binary message."""
-    return _make_frame(message, OPCODE_BINARY)
-
-
-def make_text_message(message):
+def make_message(message, binary=False):
     """Make text message."""
     if isinstance(message, str):
         message = message.encode('utf-8')
 
-    return _make_frame(message, OPCODE_TEXT)
+    if binary:
+        return _make_frame(message, OPCODE_BINARY)
+    else:
+        return _make_frame(message, OPCODE_TEXT)
 
 
 def make_handshake(request):

@@ -17,8 +17,9 @@ from StringIO import StringIO
 
 from gi.repository import Gio
 from gi.repository import GLib
+from gi.repository import GObject
 
-import protocol
+from gwebsockets import protocol
 
 
 class MessageBuffer():
@@ -43,8 +44,21 @@ class MessageBuffer():
         self.available = len(self._data) - self._cursor
 
 
-class Server():
+class Message():
+    TYPE_TEXT = 0
+    TYPE_BINARY = 1
+
+    def __init__(self, message_type, data):
+        self.message_type = message_type
+        self.data = data
+
+
+class Server(GObject.GObject):
+    message_received = GObject.Signal("message-received", arg_types=(object,))
+
     def __init__(self, address, port):
+        GObject.GObject.__init__(self)
+
         self._address = address
         self._port = port
         self._connection = None
@@ -75,6 +89,15 @@ class Server():
                 self._parse_g = protocol.parse_message(self._message)
 
             parsed_message = self._parse_g.next()
+            if parsed_message:
+                self._parse_g = None
+
+                if parsed_message.tp == protocol.OPCODE_TEXT:
+                    message = Message(Message.TYPE_TEXT, parsed_message.data)
+                elif parsed_message.tp == protocol.OPCODE_BINARY:
+                    message = Message(Message.TYPE_BINARY, parsed_message.data)
+
+                self.message_received.emit(message)
         else:
             self._request.write(data)
             if data.endswith("\r\n\r\n"):
@@ -93,9 +116,11 @@ class Server():
         if callback:
             callback(written)
  
-    def send_message(self, message, callback=None):
+    def send_message(self, message, callback=None, binary=False):
+        protocol_message = protocol.make_message(message)
+
         stream = self._connection.get_output_stream()
-        stream.write_bytes_async(GLib.Bytes.new(message),
+        stream.write_bytes_async(GLib.Bytes.new(protocol_message),
                                  GLib.PRIORITY_DEFAULT,
                                  None, self._message_write_cb, callback)
 
@@ -111,7 +136,11 @@ class Server():
 
 
 if __name__ == "__main__":
+    def message_received_cb(server, message):
+        server.send_message(message.data)
+
     server = Server("127.0.0.1", 9000)
+    server.connect("message-received", message_received_cb)
     server.start()
 
     main_loop = GLib.MainLoop()
