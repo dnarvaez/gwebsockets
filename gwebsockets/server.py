@@ -73,8 +73,6 @@ class Server():
                 self._parse_g = protocol.parse_message(self._message)
 
             parsed_message = self._parse_g.next()
-            print protocol.make_text_message(parsed_message.data)
-            self.send_message(protocol.make_text_message(parsed_message.data))
         else:
             self._request.write(data)
             if data.endswith("\r\n\r\n"):
