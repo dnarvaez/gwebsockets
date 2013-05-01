@@ -83,13 +83,18 @@ class Session(GObject.GObject):
         data = stream.read_bytes(8192, None).get_data()
 
         if self._ready:
+            if self._message is None:
+                self._message = MessageBuffer()
+
             self._message.append(data)
+
             if self._parse_g is None:
                 self._parse_g = protocol.parse_message(self._message)
 
             parsed_message = self._parse_g.next()
             if parsed_message:
                 self._parse_g = None
+                self._message = None
 
                 if parsed_message.tp == protocol.OPCODE_TEXT:
                     message = Message(Message.TYPE_TEXT, parsed_message.data)
