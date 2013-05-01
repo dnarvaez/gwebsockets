@@ -96,12 +96,16 @@ class Session(GObject.GObject):
                 self._parse_g = None
                 self._message = None
 
+                received = None
                 if parsed_message.tp == protocol.OPCODE_TEXT:
-                    message = Message(Message.TYPE_TEXT, parsed_message.data)
+                    received = Message(Message.TYPE_TEXT,
+                                       parsed_message.data)
                 elif parsed_message.tp == protocol.OPCODE_BINARY:
-                    message = Message(Message.TYPE_BINARY, parsed_message.data)
+                    received = Message(Message.TYPE_BINARY,
+                                       parsed_message.data)
 
-                self.message_received.emit(message)
+                if received:
+                    self.message_received.emit(received)
         else:
             self._request.write(data)
             if data.endswith("\r\n\r\n"):

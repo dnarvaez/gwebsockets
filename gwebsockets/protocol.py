@@ -129,8 +129,8 @@ def parse_message(buf):
 
     if opcode == OPCODE_CLOSE:
         if len(payload) >= 2:
-            close_code = struct.unpack('!H', payload[:2])[0]
-            close_message = payload[2:]
+            close_message = "".join(payload[:2])
+            close_code = struct.unpack('!H', close_message)[0]
             yield Message(OPCODE_CLOSE, close_code, close_message)
         elif payload:
             raise WebSocketError(
