@@ -56,11 +56,9 @@ class Message():
 class Server(GObject.GObject):
     message_received = GObject.Signal("message-received", arg_types=(object,))
 
-    def __init__(self, address, port):
+    def __init__(self):
         GObject.GObject.__init__(self)
 
-        self._address = address
-        self._port = port
         self._connection = None
         self._request = StringIO()
         self._message = MessageBuffer()
@@ -125,23 +123,20 @@ class Server(GObject.GObject):
                                  None, self._message_write_cb, callback)
 
     def start(self):
-        inet_address = Gio.InetAddress.new_from_string(self._address)
-        socket_address = Gio.InetSocketAddress.new(inet_address, self._port)
-
         service = Gio.SocketService()
-        service.add_address(socket_address, Gio.SocketType.STREAM,
-                            Gio.SocketProtocol.TCP, None)
-
         service.connect("incoming", self._incoming_connection_cb)
+        return service.add_any_inet_port(None)
 
 
 if __name__ == "__main__":
     def message_received_cb(server, message):
         server.send_message(message.data)
 
-    server = Server("127.0.0.1", 9000)
+    server = Server()
     server.connect("message-received", message_received_cb)
-    server.start()
+    port = server.start()
+
+    print "Listening on port %d" % port
 
     main_loop = GLib.MainLoop()
     main_loop.run()
