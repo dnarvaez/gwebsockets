@@ -81,6 +81,8 @@ class Session(GObject.GObject):
     def got_data(self):
         stream = self._connection.get_input_stream()
         data = stream.read_bytes(8192, None).get_data()
+        if not data:
+            return False
 
         if self._ready:
             if self._message is None:
@@ -111,6 +113,8 @@ class Session(GObject.GObject):
             if data.endswith("\r\n\r\n"):
                 self._do_handshake()
 
+        return True
+
     def _message_write_cb(self, stream, result, callback):
         written = stream.write_bytes_finish(result)
         if callback:
@@ -129,8 +133,7 @@ class Server(GObject.GObject):
     session_started = GObject.Signal("session-started", arg_types=(object,))
 
     def _input_data_cb(self, session):
-        session.got_data()
-        return True
+        return session.got_data()
 
     def _incoming_connection_cb(self, service, connection, user_data):
         session = Session(connection)
