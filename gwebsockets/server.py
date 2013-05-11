@@ -78,11 +78,13 @@ class Session(GObject.GObject):
                                  GLib.PRIORITY_DEFAULT,
                                  None, self._response_write_cb, None)
 
-    def got_data(self):
+    def read_data(self):
         stream = self._connection.get_input_stream()
-        data = stream.read_bytes(8192, None).get_data()
-        if not data:
-            return False
+        stream.read_bytes_async(8192, GLib.PRIORITY_DEFAULT, None,
+                                self._read_data_cb, None)
+
+    def _read_data_cb(self, stream, result, user_data):
+        data = stream.read_bytes_finish(result).get_data()
 
         if self._ready:
             if self._message is None:
@@ -113,7 +115,7 @@ class Session(GObject.GObject):
             if data.endswith("\r\n\r\n"):
                 self._do_handshake()
 
-        return True
+        self.read_data()
 
     def _message_write_cb(self, stream, result, callback):
         written = stream.write_bytes_finish(result)
@@ -132,17 +134,10 @@ class Session(GObject.GObject):
 class Server(GObject.GObject):
     session_started = GObject.Signal("session-started", arg_types=(object,))
 
-    def _input_data_cb(self, session):
-        return session.got_data()
-
     def _incoming_connection_cb(self, service, connection, user_data):
         session = Session(connection)
         self.session_started.emit(session)
-
-        input_stream = connection.get_input_stream()
-        source = Gio.PollableInputStream.create_source(input_stream, None)
-        source.set_callback(self._input_data_cb, session)
-        source.attach()
+        session.read_data()
 
     def start(self):
         service = Gio.SocketService()
