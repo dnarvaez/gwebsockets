@@ -25,23 +25,17 @@ from gwebsockets import protocol
 class MessageBuffer():
     def __init__(self):
         self._data = b""
-        self._cursor = 0
         self.available = 0
 
     def append(self, data):
         self._data = self._data + data
-        self._update_available()
+        self.available = len(self._data)
 
     def read(self, size):
-        result = self._data[self._cursor:self._cursor + size]
-       
-        self._cursor = self._cursor + size
-        self._update_available()
-
+        result = self._data[:size]
+        self._data = self._data[size:]
+        self.available = len(self._data)
         return result
-
-    def _update_available(self):
-        self.available = len(self._data) - self._cursor
 
 
 class Message():
@@ -87,29 +81,26 @@ class Session(GObject.GObject):
         data = stream.read_bytes_finish(result).get_data()
 
         if self._ready:
-            if self._message is None:
-                self._message = MessageBuffer()
-
             self._message.append(data)
 
-            if self._parse_g is None:
-                self._parse_g = protocol.parse_message(self._message)
+            while self._message.available > 0:
+                if self._parse_g is None:
+                    self._parse_g = protocol.parse_message(self._message)
 
-            parsed_message = self._parse_g.next()
-            if parsed_message:
-                self._parse_g = None
-                self._message = None
+                parsed_message = self._parse_g.next()
+                if parsed_message:
+                    self._parse_g = None
 
-                received = None
-                if parsed_message.tp == protocol.OPCODE_TEXT:
-                    received = Message(Message.TYPE_TEXT,
-                                       parsed_message.data)
-                elif parsed_message.tp == protocol.OPCODE_BINARY:
-                    received = Message(Message.TYPE_BINARY,
-                                       parsed_message.data)
+                    received = None
+                    if parsed_message.tp == protocol.OPCODE_TEXT:
+                        received = Message(Message.TYPE_TEXT,
+                                           parsed_message.data)
+                    elif parsed_message.tp == protocol.OPCODE_BINARY:
+                        received = Message(Message.TYPE_BINARY,
+                                           parsed_message.data)
 
-                if received:
-                    self.message_received.emit(received)
+                    if received:
+                        self.message_received.emit(received)
         else:
             self._request.write(data)
             if data.endswith("\r\n\r\n"):
