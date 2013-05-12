@@ -114,7 +114,7 @@ class Session(GObject.GObject):
             callback(written)
  
     def send_message(self, message, callback=None, binary=False):
-        protocol_message = protocol.make_message(message)
+        protocol_message = protocol.make_message(message, binary)
 
         stream = self._connection.get_output_stream()
         stream.write_bytes_async(GLib.Bytes.new(protocol_message),
