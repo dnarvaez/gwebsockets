@@ -158,8 +158,8 @@ def parse_message(buf):
             yield
 
         fin, opcode, payload = result
-      
-        if _opcode != OPCODE_CONTINUATION:
+
+        if opcode != OPCODE_CONTINUATION:
             raise WebSocketError(
                 'The opcode in non-fin frame is expected '
                 'to be zero, got {!r}'.format(opcode))
@@ -200,7 +200,7 @@ def make_close_message(code=1000, message=b''):
     """Close the websocket, sending the specified code and message."""
     return _make_frame(struct.pack('!H%ds' % len(message), code, message),
                        opcode=OPCODE_CLOSE)
- 
+
 
 def make_message(message, binary=False):
     """Make text message."""

@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from StringIO import StringIO
 
 from gi.repository import Gio
@@ -20,6 +21,9 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 from gwebsockets import protocol
+
+
+logger = logging.getLogger("gwebsockets")
 
 
 class MessageBuffer():
@@ -79,6 +83,7 @@ class Session(GObject.GObject):
 
     def _read_data_cb(self, stream, result, user_data):
         data = stream.read_bytes_finish(result).get_data()
+        logger.debug("Got data, length %d" % len(data))
 
         if self._ready:
             self._message.append(data)
@@ -95,10 +100,12 @@ class Session(GObject.GObject):
                     if parsed_message.tp == protocol.OPCODE_TEXT:
                         received = Message(Message.TYPE_TEXT,
                                            parsed_message.data)
+                        logger.debug("Text message %s" % received.data)
                     elif parsed_message.tp == protocol.OPCODE_BINARY:
                         received = Message(Message.TYPE_BINARY,
                                            parsed_message.data)
-
+                        logger.debug("Binary message, length %s" %
+                                     received.data.length)
                     if received:
                         self.message_received.emit(received)
         else:
@@ -112,7 +119,7 @@ class Session(GObject.GObject):
         written = stream.write_bytes_finish(result)
         if callback:
             callback(written)
- 
+
     def send_message(self, message, callback=None, binary=False):
         protocol_message = protocol.make_message(message, binary)
 
