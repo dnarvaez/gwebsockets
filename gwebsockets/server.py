@@ -15,13 +15,13 @@
 
 import logging
 from StringIO import StringIO
+from collections import deque
 
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 
 from gwebsockets import protocol
-
 
 logger = logging.getLogger("gwebsockets")
 
@@ -62,6 +62,8 @@ class Session(GObject.GObject):
         self._message = MessageBuffer()
         self._parse_g = None
         self._ready = False
+        self._send_queue = deque()
+        self._sending = False
 
     def _response_write_cb(self, stream, result, user_data):
         stream.write_bytes_finish(result)
@@ -84,6 +86,9 @@ class Session(GObject.GObject):
     def _read_data_cb(self, stream, result, user_data):
         data = stream.read_bytes_finish(result).get_data()
         logger.debug("Got data, length %d" % len(data))
+
+        if not data:
+            return
 
         if self._ready:
             self._message.append(data)
@@ -120,13 +125,29 @@ class Session(GObject.GObject):
         if callback:
             callback(written)
 
+        self._sending = False
+
+        self._send_from_queue()
+
     def send_message(self, message, callback=None, binary=False):
         protocol_message = protocol.make_message(message, binary)
+        self._send_queue.append((protocol_message, callback))
+        self._send_from_queue()
+
+    def _send_from_queue(self):
+        if self._sending:
+            return
+
+        if not self._send_queue:
+            return
 
         stream = self._connection.get_output_stream()
-        stream.write_bytes_async(GLib.Bytes.new(protocol_message),
+        message, callback = self._send_queue.popleft()
+        stream.write_bytes_async(GLib.Bytes.new(message),
                                  GLib.PRIORITY_DEFAULT,
                                  None, self._message_write_cb, callback)
+
+        self._sending = True
 
 
 class Server(GObject.GObject):
