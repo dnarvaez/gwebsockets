@@ -110,7 +110,7 @@ class Session(GObject.GObject):
                         received = Message(Message.TYPE_BINARY,
                                            parsed_message.data)
                         logger.debug("Binary message, length %s" %
-                                     received.data.length)
+                                     len(received.data))
                     if received:
                         self.message_received.emit(received)
         else:
