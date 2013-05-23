@@ -33,8 +33,8 @@ class LintCommand(Command):
         pass
 
     def run(self):
-        subprocess.check_call(["pep8", "."])
-        subprocess.check_call(["pyflakes", "."])
+        subprocess.check_call(["pep8", "gwebsockets"])
+        subprocess.check_call(["pyflakes", "gwebsockets"])
 
 
 setup(name="gwebsockets",
