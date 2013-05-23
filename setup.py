@@ -13,11 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from distutils.core import setup
+import subprocess
+
+from setuptools import setup
+from distutils.cmd import Command
 
 classifiers = ["License :: OSI Approved :: Apache Software License",
                "Programming Language :: Python :: 2",
                "Topic :: Software Development :: Libraries :: Python Modules"]
+
+
+class LintCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        subprocess.check_call(["pep8", "."])
+        subprocess.check_call(["pyflakes", "."])
+
 
 setup(name="gwebsockets",
       packages=["gwebsockets"],
@@ -26,4 +44,7 @@ setup(name="gwebsockets",
       author="Daniel Narvaez",
       author_email="dwnarvaez@gmail.com",
       url="http://github.com/dnarvaez/gwebsockets",
+      test_suite="gwebsockets.tests",
+      cmdclass={"lint": LintCommand},
+      setup_requires=["autobahn"],
       classifiers=classifiers)
