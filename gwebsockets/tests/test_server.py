@@ -3,7 +3,6 @@ import unittest
 from twisted.internet import gtk3reactor
 gtk3reactor.install()
 
-from gi.repository import GLib
 from twisted.internet import reactor
 from autobahn.websocket import WebSocketClientFactory
 from autobahn.websocket import WebSocketClientProtocol
