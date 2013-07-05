@@ -18,6 +18,11 @@ import subprocess
 from setuptools import setup
 from distutils.cmd import Command
 
+long_description = """
+A websocket server written in python. It uses GIO for network communication
+and hence it easily integrates with the GLib mainloop.
+"""
+
 classifiers = ["License :: OSI Approved :: Apache Software License",
                "Programming Language :: Python :: 2",
                "Topic :: Software Development :: Libraries :: Python Modules"]
@@ -37,16 +42,11 @@ class LintCommand(Command):
         subprocess.check_call(["pyflakes", "gwebsockets"])
 
 
-def load_readme():
-    with open("README.md") as f:
-        return f.read()
-
-
 setup(name="gwebsockets",
       packages=["gwebsockets"],
       version="0.1",
       description="GLib based websockets server",
-      long_description=load_readme(),
+      long_description=long_description,
       author="Daniel Narvaez",
       author_email="dwnarvaez@gmail.com",
       url="http://github.com/dnarvaez/gwebsockets",
