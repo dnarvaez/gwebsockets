@@ -52,5 +52,5 @@ setup(name="gwebsockets",
       url="http://github.com/dnarvaez/gwebsockets",
       test_suite="gwebsockets.tests",
       cmdclass={"lint": LintCommand},
-      setup_requires=["autobahn"],
+      tests_require=["autobahn"],
       classifiers=classifiers)
