@@ -37,10 +37,16 @@ class LintCommand(Command):
         subprocess.check_call(["pyflakes", "gwebsockets"])
 
 
+def load_readme():
+    with open("README.md") as f:
+        return f.read()
+
+
 setup(name="gwebsockets",
       packages=["gwebsockets"],
       version="0.1",
       description="GLib based websockets server",
+      long_description=load_readme(),
       author="Daniel Narvaez",
       author_email="dwnarvaez@gmail.com",
       url="http://github.com/dnarvaez/gwebsockets",
