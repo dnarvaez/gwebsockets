@@ -113,6 +113,8 @@ class Session(GObject.GObject):
                                      len(received.data))
                     if received:
                         self.message_received.emit(received)
+                else:
+                    break
         else:
             self._request.write(data)
             if data.endswith("\r\n\r\n"):
