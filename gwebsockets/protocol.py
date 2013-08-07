@@ -119,11 +119,12 @@ def parse_frame(buf):
 def parse_message(buf):
     g = parse_frame(buf)
 
-    result = g.next()
-
-    while result is None:
+    while True:
         result = g.next()
-        yield
+        if result:
+            break
+        else:
+            yield
 
     fin, opcode, payload = result
 
