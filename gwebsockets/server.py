@@ -105,11 +105,12 @@ class Session(GObject.GObject):
                     if parsed_message.tp == protocol.OPCODE_TEXT:
                         received = Message(Message.TYPE_TEXT,
                                            parsed_message.data)
-                        logger.debug("Text message %s" % received.data)
+                        logger.debug("Received text message %s" %
+                                     received.data)
                     elif parsed_message.tp == protocol.OPCODE_BINARY:
                         received = Message(Message.TYPE_BINARY,
                                            parsed_message.data)
-                        logger.debug("Binary message, length %s" %
+                        logger.debug("Received binary message, length %s" %
                                      len(received.data))
                     if received:
                         self.message_received.emit(received)
@@ -132,6 +133,11 @@ class Session(GObject.GObject):
         self._send_from_queue()
 
     def send_message(self, message, callback=None, binary=False):
+        if binary:
+            logger.debug("Sending binary message, length %s" % len(message))
+        else:
+            logger.debug("Sending text message %s" % message)
+
         protocol_message = protocol.make_message(message, binary)
         self._send_queue.append((protocol_message, callback))
         self._send_from_queue()
