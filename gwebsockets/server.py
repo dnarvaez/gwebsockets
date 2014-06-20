@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from StringIO import StringIO
+from io import StringIO
 from collections import deque
 
 from gi.repository import Gio
@@ -97,7 +97,7 @@ class Session(GObject.GObject):
                 if self._parse_g is None:
                     self._parse_g = protocol.parse_message(self._message)
 
-                parsed_message = self._parse_g.next()
+                parsed_message = next(self._parse_g)
                 if parsed_message:
                     self._parse_g = None
 
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     server.connect("session-started", session_started_cb)
     port = server.start()
 
-    print "Listening on port %d" % port
+    print("Listening on port %d" % port)
 
     main_loop = GLib.MainLoop()
     main_loop.run()
