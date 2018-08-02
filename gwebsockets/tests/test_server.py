@@ -3,9 +3,9 @@ gtk3reactor.install()
 
 from twisted.trial import unittest
 from twisted.internet import defer
-from autobahn.websocket import WebSocketClientFactory
-from autobahn.websocket import WebSocketClientProtocol
-from autobahn.websocket import connectWS
+from autobahn.twisted.websocket import WebSocketClientProtocol
+from autobahn.twisted.websocket import WebSocketClientFactory
+from autobahn.twisted.websocket import connectWS
 
 from gwebsockets.server import Server
 
