@@ -20,7 +20,7 @@ import base64
 import binascii
 import collections
 import hashlib
-import httplib
+import http.client
 import struct
 
 OPCODE_CONTINUATION = 0x0
@@ -37,7 +37,7 @@ WS_HDRS = ('UPGRADE', 'CONNECTION',
 Message = collections.namedtuple('Message', ['tp', 'data', 'extra'])
 
 
-class BadRequestException(httplib.HTTPException):
+class BadRequestException(http.client.HTTPException):
     code = 400
 
 
@@ -120,7 +120,7 @@ def parse_message(buf):
     g = parse_frame(buf)
 
     while True:
-        result = g.next()
+        result = next(g)
         if result:
             break
         else:
@@ -153,9 +153,9 @@ def parse_message(buf):
 
     g = parse_frame(buf)
     while not fin:
-        result = g.next()
+        result = next(g)
         while result is None:
-            result = g.next()
+            result = next(g)
             yield
 
         fin, opcode, payload = result
@@ -219,7 +219,7 @@ def make_handshake(request):
     if not request_line.startswith("GET"):
         raise BadRequestException("The method should be GET")
 
-    message = httplib.HTTPMessage(request)
+    message = http.client.HTTPMessage(request)
     headers = dict(message)
 
     if 'websocket' != headers.get('upgrade', '').lower().strip():
